@@ -31,6 +31,8 @@
 
   <div *ngIf="products">
     <div class="mb-2 d-flex justify-content-end align-items-center">
+      <span class="mr-2 col-2">Filter by name</span>
+      <input type="search" class="form-control" [(ngModel)]="filter" />
       <span class="mx-2 col-1">Sort by</span>
       <div class="btn-group" role="group" jhiSort [(predicate)]="predicate" [(ascending)]="ascending" [callback]="loadPage.bind(this)">
         <button type="button" class="btn btn-light" jhiSortBy="name">
@@ -61,7 +63,10 @@
     </div>
 
     <div class="list-group">
-      <a class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let product of products; trackBy: trackId">
+      <a
+        class="list-group-item list-group-item-action flex-column align-items-start"
+        *ngFor="let product of products | pureFilter: filter; trackBy: trackId"
+      >
         <div class="row">
           <div class="col-2 col-xs-12 justify-content-center">
             <img [src]="'data:' + product.imageContentType + ';base64,' + product.image" style="max-height: 150px" alt="product image" />
