@@ -1,4 +1,4 @@
-import { Component, OnInit, PipeTransform, Pipe } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
@@ -10,24 +10,6 @@ import { ITEMS_PER_PAGE } from 'app/config/pagination.constants';
 import { ProductService } from '../service/product.service';
 import { ProductDeleteDialogComponent } from '../delete/product-delete-dialog.component';
 import { DataUtils } from 'app/core/util/data-util.service';
-
-@Pipe({
-  name: 'pureFilter',
-})
-export class FilterPipe implements PipeTransform {
-  transform(items: IProduct[], searchTerm: string): IProduct[] {
-    if (searchTerm) {
-      return items.filter(item => {
-        if (item.name) {
-          return item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        }
-        return false;
-      });
-    }
-
-    return items;
-  }
-}
 
 @Component({
   selector: 'jhi-product',
@@ -42,7 +24,6 @@ export class ProductComponent implements OnInit {
   predicate!: string;
   ascending!: boolean;
   ngbPaginationPage = 1;
-  filter = '';
 
   constructor(
     protected productService: ProductService,
