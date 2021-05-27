@@ -195,6 +195,7 @@ class ProductOrderResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void getAllProductOrders() throws Exception {
         // Initialize the database
         productOrderRepository.saveAndFlush(productOrder);

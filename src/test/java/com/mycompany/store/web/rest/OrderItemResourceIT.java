@@ -462,6 +462,7 @@ class OrderItemResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void deleteOrderItem() throws Exception {
         // Initialize the database
         orderItemRepository.saveAndFlush(orderItem);

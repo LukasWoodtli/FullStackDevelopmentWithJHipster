@@ -81,6 +81,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void createProductCategory() throws Exception {
         int databaseSizeBeforeCreate = productCategoryRepository.findAll().size();
         // Create the ProductCategory
@@ -100,6 +101,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void createProductCategoryWithExistingId() throws Exception {
         // Create the ProductCategory with an existing ID
         productCategory.setId(1L);
@@ -120,6 +122,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkNameIsRequired() throws Exception {
         int databaseSizeBeforeTest = productCategoryRepository.findAll().size();
         // set the field null
@@ -139,6 +142,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void getAllProductCategories() throws Exception {
         // Initialize the database
         productCategoryRepository.saveAndFlush(productCategory);
@@ -248,6 +252,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void putWithMissingIdPathParamProductCategory() throws Exception {
         int databaseSizeBeforeUpdate = productCategoryRepository.findAll().size();
         productCategory.setId(count.incrementAndGet());
@@ -364,6 +369,7 @@ class ProductCategoryResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void patchWithMissingIdPathParamProductCategory() throws Exception {
         int databaseSizeBeforeUpdate = productCategoryRepository.findAll().size();
         productCategory.setId(count.incrementAndGet());

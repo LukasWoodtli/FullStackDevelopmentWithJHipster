@@ -132,6 +132,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void createCustomer() throws Exception {
         int databaseSizeBeforeCreate = customerRepository.findAll().size();
         // Create the Customer
@@ -156,6 +157,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void createCustomerWithExistingId() throws Exception {
         // Create the Customer with an existing ID
         customer.setId(1L);
@@ -174,6 +176,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkFirstNameIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -191,6 +194,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkLastNameIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -208,6 +212,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkGenderIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -225,6 +230,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkEmailIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -242,6 +248,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkPhoneIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -259,6 +266,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkAddressLine1IsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -276,6 +284,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkCityIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -293,6 +302,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void checkCountryIsRequired() throws Exception {
         int databaseSizeBeforeTest = customerRepository.findAll().size();
         // set the field null
@@ -310,6 +320,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void getAllCustomers() throws Exception {
         // Initialize the database
         customerRepository.saveAndFlush(customer);
@@ -449,6 +460,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void putWithMissingIdPathParamCustomer() throws Exception {
         int databaseSizeBeforeUpdate = customerRepository.findAll().size();
         customer.setId(count.incrementAndGet());
@@ -593,6 +605,7 @@ class CustomerResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
     void patchWithMissingIdPathParamCustomer() throws Exception {
         int databaseSizeBeforeUpdate = customerRepository.findAll().size();
         customer.setId(count.incrementAndGet());
