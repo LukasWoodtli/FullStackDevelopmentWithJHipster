@@ -39,6 +39,16 @@ Add the `help` flag on any command to see how you can use it. For example, `npm 
 
 The `npm run` command will list all of the scripts available to run for this project.
 
+### Development Life Reloads
+
+Start the Gradle build in a terminal: `./gradlew`
+
+Then open a new terminal window and start the Angular `npm start`
+
+When changing files on the backend (Java) rebuild the project with `./gradlew compileJava`. This is only necessary if the IDE is not rebuilding automatically.
+
+The front end is rebuilt and loaded automatically.
+
 ### PWA Support
 
 JHipster ships with PWA (Progressive Web App) support, and it's turned off by default. One of the main components of a PWA is a service worker.
