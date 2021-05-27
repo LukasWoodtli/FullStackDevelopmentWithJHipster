@@ -2,6 +2,8 @@ package com.mycompany.store.service;
 
 import com.mycompany.store.domain.ProductOrder;
 import com.mycompany.store.repository.ProductOrderRepository;
+import com.mycompany.store.security.AuthoritiesConstants;
+import com.mycompany.store.security.SecurityUtils;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +76,11 @@ public class ProductOrderService {
     @Transactional(readOnly = true)
     public Page<ProductOrder> findAll(Pageable pageable) {
         log.debug("Request to get all ProductOrders");
-        return productOrderRepository.findAll(pageable);
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)) {
+            return productOrderRepository.findAll(pageable);
+        } else {
+            return productOrderRepository.findAllByCustomerUserLogin(SecurityUtils.getCurrentUserLogin().get(), pageable);
+        }
     }
 
     /**
