@@ -1,6 +1,5 @@
 import * as dayjs from 'dayjs';
 import { IOrderItem } from 'app/entities/order-item/order-item.model';
-import { IInvoice } from 'app/entities/invoice/invoice.model';
 import { ICustomer } from 'app/entities/customer/customer.model';
 import { OrderStatus } from 'app/entities/enumerations/order-status.model';
 
@@ -10,7 +9,6 @@ export interface IProductOrder {
   status?: OrderStatus;
   code?: string;
   orderItems?: IOrderItem[] | null;
-  invoices?: IInvoice[] | null;
   customer?: ICustomer;
 }
 
@@ -21,7 +19,6 @@ export class ProductOrder implements IProductOrder {
     public status?: OrderStatus,
     public code?: string,
     public orderItems?: IOrderItem[] | null,
-    public invoices?: IInvoice[] | null,
     public customer?: ICustomer
   ) {}
 }

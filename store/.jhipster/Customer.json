@@ -73,6 +73,7 @@
   "fluentMethods": true,
   "readOnly": false,
   "embedded": false,
-  "applications": "*",
-  "changelogDate": "20210512181126"
+  "applications": ["store"],
+  "databaseType": "sql",
+  "changelogDate": "20210607112121"
 }

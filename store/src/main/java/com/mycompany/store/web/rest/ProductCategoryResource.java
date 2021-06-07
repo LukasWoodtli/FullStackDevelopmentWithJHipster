@@ -14,10 +14,15 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.ResponseUtil;
+import tech.jhipster.web.util.reactive.ResponseUtil;
 
 /**
  * REST controller for managing {@link com.mycompany.store.domain.ProductCategory}.
@@ -50,17 +55,26 @@ public class ProductCategoryResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/product-categories")
-    public ResponseEntity<ProductCategory> createProductCategory(@Valid @RequestBody ProductCategory productCategory)
+    public Mono<ResponseEntity<ProductCategory>> createProductCategory(@Valid @RequestBody ProductCategory productCategory)
         throws URISyntaxException {
         log.debug("REST request to save ProductCategory : {}", productCategory);
         if (productCategory.getId() != null) {
             throw new BadRequestAlertException("A new productCategory cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ProductCategory result = productCategoryService.save(productCategory);
-        return ResponseEntity
-            .created(new URI("/api/product-categories/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        return productCategoryService
+            .save(productCategory)
+            .map(
+                result -> {
+                    try {
+                        return ResponseEntity
+                            .created(new URI("/api/product-categories/" + result.getId()))
+                            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                            .body(result);
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            );
     }
 
     /**
@@ -74,7 +88,7 @@ public class ProductCategoryResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/product-categories/{id}")
-    public ResponseEntity<ProductCategory> updateProductCategory(
+    public Mono<ResponseEntity<ProductCategory>> updateProductCategory(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ProductCategory productCategory
     ) throws URISyntaxException {
@@ -86,15 +100,28 @@ public class ProductCategoryResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        if (!productCategoryRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        return productCategoryRepository
+            .existsById(id)
+            .flatMap(
+                exists -> {
+                    if (!exists) {
+                        return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
+                    }
 
-        ProductCategory result = productCategoryService.save(productCategory);
-        return ResponseEntity
-            .ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, productCategory.getId().toString()))
-            .body(result);
+                    return productCategoryService
+                        .save(productCategory)
+                        .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+                        .map(
+                            result ->
+                                ResponseEntity
+                                    .ok()
+                                    .headers(
+                                        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString())
+                                    )
+                                    .body(result)
+                        );
+                }
+            );
     }
 
     /**
@@ -109,7 +136,7 @@ public class ProductCategoryResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/product-categories/{id}", consumes = "application/merge-patch+json")
-    public ResponseEntity<ProductCategory> partialUpdateProductCategory(
+    public Mono<ResponseEntity<ProductCategory>> partialUpdateProductCategory(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ProductCategory productCategory
     ) throws URISyntaxException {
@@ -121,16 +148,27 @@ public class ProductCategoryResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        if (!productCategoryRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        return productCategoryRepository
+            .existsById(id)
+            .flatMap(
+                exists -> {
+                    if (!exists) {
+                        return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
+                    }
 
-        Optional<ProductCategory> result = productCategoryService.partialUpdate(productCategory);
+                    Mono<ProductCategory> result = productCategoryService.partialUpdate(productCategory);
 
-        return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, productCategory.getId().toString())
-        );
+                    return result
+                        .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
+                        .map(
+                            res ->
+                                ResponseEntity
+                                    .ok()
+                                    .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                                    .body(res)
+                        );
+                }
+            );
     }
 
     /**
@@ -139,8 +177,18 @@ public class ProductCategoryResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of productCategories in body.
      */
     @GetMapping("/product-categories")
-    public List<ProductCategory> getAllProductCategories() {
+    public Mono<List<ProductCategory>> getAllProductCategories() {
         log.debug("REST request to get all ProductCategories");
+        return productCategoryService.findAll().collectList();
+    }
+
+    /**
+     * {@code GET  /product-categories} : get all the productCategories as a stream.
+     * @return the {@link Flux} of productCategories.
+     */
+    @GetMapping(value = "/product-categories", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public Flux<ProductCategory> getAllProductCategoriesAsStream() {
+        log.debug("REST request to get all ProductCategories as a stream");
         return productCategoryService.findAll();
     }
 
@@ -151,9 +199,9 @@ public class ProductCategoryResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the productCategory, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/product-categories/{id}")
-    public ResponseEntity<ProductCategory> getProductCategory(@PathVariable Long id) {
+    public Mono<ResponseEntity<ProductCategory>> getProductCategory(@PathVariable Long id) {
         log.debug("REST request to get ProductCategory : {}", id);
-        Optional<ProductCategory> productCategory = productCategoryService.findOne(id);
+        Mono<ProductCategory> productCategory = productCategoryService.findOne(id);
         return ResponseUtil.wrapOrNotFound(productCategory);
     }
 
@@ -164,12 +212,17 @@ public class ProductCategoryResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/product-categories/{id}")
-    public ResponseEntity<Void> deleteProductCategory(@PathVariable Long id) {
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public Mono<ResponseEntity<Void>> deleteProductCategory(@PathVariable Long id) {
         log.debug("REST request to delete ProductCategory : {}", id);
-        productCategoryService.delete(id);
-        return ResponseEntity
-            .noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-            .build();
+        return productCategoryService
+            .delete(id)
+            .map(
+                result ->
+                    ResponseEntity
+                        .noContent()
+                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                        .build()
+            );
     }
 }

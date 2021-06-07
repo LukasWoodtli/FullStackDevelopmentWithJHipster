@@ -2,6 +2,11 @@
   "name": "Invoice",
   "fields": [
     {
+      "fieldName": "code",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
       "fieldName": "date",
       "fieldType": "Instant",
       "fieldValidateRules": ["required"]
@@ -33,8 +38,8 @@
       "fieldValidateRules": ["required"]
     },
     {
-      "fieldName": "code",
-      "fieldType": "String",
+      "fieldName": "productOrderId",
+      "fieldType": "Long",
       "fieldValidateRules": ["required"]
     }
   ],
@@ -44,14 +49,6 @@
       "otherEntityName": "shipment",
       "otherEntityRelationshipName": "invoice",
       "relationshipName": "shipment"
-    },
-    {
-      "relationshipType": "many-to-one",
-      "otherEntityName": "productOrder",
-      "otherEntityRelationshipName": "invoice",
-      "relationshipValidateRules": "required",
-      "relationshipName": "order",
-      "otherEntityField": "code"
     }
   ],
   "entityTableName": "invoice",
@@ -62,6 +59,9 @@
   "fluentMethods": true,
   "readOnly": false,
   "embedded": false,
-  "applications": "*",
-  "changelogDate": "20210512181129"
+  "applications": ["store", "invoice"],
+  "microserviceName": "invoice",
+  "clientRootFolder": "invoice",
+  "databaseType": "sql",
+  "changelogDate": "20210607112021"
 }

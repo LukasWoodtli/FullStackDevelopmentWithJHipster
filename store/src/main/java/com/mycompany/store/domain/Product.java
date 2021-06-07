@@ -5,53 +5,52 @@ import com.mycompany.store.domain.enumeration.Size;
 import io.swagger.annotations.ApiModel;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import javax.persistence.*;
 import javax.validation.constraints.*;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * Product sold by the Online store
  */
 @ApiModel(description = "Product sold by the Online store")
-@Entity
-@Table(name = "product")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table("product")
 public class Product implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(name = "name", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("name")
     private String name;
 
-    @Column(name = "description")
+    @Column("description")
     private String description;
 
-    @NotNull
+    @NotNull(message = "must not be null")
     @DecimalMin(value = "0")
-    @Column(name = "price", precision = 21, scale = 2, nullable = false)
+    @Column("price")
     private BigDecimal price;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "product_size", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("product_size")
     private Size productSize;
 
-    @Lob
-    @Column(name = "image")
+    @Column("image")
     private byte[] image;
 
-    @Column(name = "image_content_type")
+    @Column("image_content_type")
     private String imageContentType;
 
-    @ManyToOne
     @JsonIgnoreProperties(value = { "products" }, allowSetters = true)
+    @Transient
     private ProductCategory productCategory;
+
+    @Column("product_category_id")
+    private Long productCategoryId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
@@ -98,12 +97,12 @@ public class Product implements Serializable {
     }
 
     public Product price(BigDecimal price) {
-        this.price = price;
+        this.price = price != null ? price.stripTrailingZeros() : null;
         return this;
     }
 
     public void setPrice(BigDecimal price) {
-        this.price = price;
+        this.price = price != null ? price.stripTrailingZeros() : null;
     }
 
     public Size getProductSize() {
@@ -151,11 +150,21 @@ public class Product implements Serializable {
 
     public Product productCategory(ProductCategory productCategory) {
         this.setProductCategory(productCategory);
+        this.productCategoryId = productCategory != null ? productCategory.getId() : null;
         return this;
     }
 
     public void setProductCategory(ProductCategory productCategory) {
         this.productCategory = productCategory;
+        this.productCategoryId = productCategory != null ? productCategory.getId() : null;
+    }
+
+    public Long getProductCategoryId() {
+        return this.productCategoryId;
+    }
+
+    public void setProductCategoryId(Long productCategory) {
+        this.productCategoryId = productCategory;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

@@ -2,6 +2,7 @@ package com.mycompany.store.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -70,6 +71,7 @@ public class TokenProvider {
             .claim(AUTHORITIES_KEY, authorities)
             .signWith(key, SignatureAlgorithm.HS512)
             .setExpiration(validity)
+            .serializeToJsonWith(new JacksonSerializer())
             .compact();
     }
 

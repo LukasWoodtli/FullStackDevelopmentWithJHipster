@@ -11,13 +11,16 @@
       "error": "错误"
     },
     "indicator": {
-      "hazelcast": "Hazelcast",
+      "discoveryComposite": "Discovery Composite",
+      "refreshScope": "Microservice Refresh Scope",
+      "clientConfigServer": "Microservice Config Server",
+      "hystrix": "Hystrix",
       "diskSpace": "硬盘空间",
       "mail": "电子邮件",
       "livenessState": "Liveness state",
       "readinessState": "Readiness state",
       "ping": "Application",
-      "db": "数据库"
+      "r2dbc": "数据库"
     },
     "table": {
       "service": "服务名称",

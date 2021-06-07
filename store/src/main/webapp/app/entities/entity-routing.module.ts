@@ -5,19 +5,14 @@ import { RouterModule } from '@angular/router';
   imports: [
     RouterModule.forChild([
       {
-        path: 'product',
-        data: { pageTitle: 'storeApp.product.home.title' },
-        loadChildren: () => import('./product/product.module').then(m => m.ProductModule),
-      },
-      {
         path: 'product-category',
         data: { pageTitle: 'storeApp.productCategory.home.title' },
         loadChildren: () => import('./product-category/product-category.module').then(m => m.ProductCategoryModule),
       },
       {
-        path: 'customer',
-        data: { pageTitle: 'storeApp.customer.home.title' },
-        loadChildren: () => import('./customer/customer.module').then(m => m.CustomerModule),
+        path: 'notification',
+        data: { pageTitle: 'storeApp.notificationNotification.home.title' },
+        loadChildren: () => import('./notification/notification/notification.module').then(m => m.NotificationNotificationModule),
       },
       {
         path: 'product-order',
@@ -25,19 +20,29 @@ import { RouterModule } from '@angular/router';
         loadChildren: () => import('./product-order/product-order.module').then(m => m.ProductOrderModule),
       },
       {
-        path: 'order-item',
-        data: { pageTitle: 'storeApp.orderItem.home.title' },
-        loadChildren: () => import('./order-item/order-item.module').then(m => m.OrderItemModule),
+        path: 'invoice',
+        data: { pageTitle: 'storeApp.invoiceInvoice.home.title' },
+        loadChildren: () => import('./invoice/invoice/invoice.module').then(m => m.InvoiceInvoiceModule),
       },
       {
-        path: 'invoice',
-        data: { pageTitle: 'storeApp.invoice.home.title' },
-        loadChildren: () => import('./invoice/invoice.module').then(m => m.InvoiceModule),
+        path: 'customer',
+        data: { pageTitle: 'storeApp.customer.home.title' },
+        loadChildren: () => import('./customer/customer.module').then(m => m.CustomerModule),
+      },
+      {
+        path: 'product',
+        data: { pageTitle: 'storeApp.product.home.title' },
+        loadChildren: () => import('./product/product.module').then(m => m.ProductModule),
       },
       {
         path: 'shipment',
-        data: { pageTitle: 'storeApp.shipment.home.title' },
-        loadChildren: () => import('./shipment/shipment.module').then(m => m.ShipmentModule),
+        data: { pageTitle: 'storeApp.invoiceShipment.home.title' },
+        loadChildren: () => import('./invoice/shipment/shipment.module').then(m => m.InvoiceShipmentModule),
+      },
+      {
+        path: 'order-item',
+        data: { pageTitle: 'storeApp.orderItem.home.title' },
+        loadChildren: () => import('./order-item/order-item.module').then(m => m.OrderItemModule),
       },
       /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
     ]),

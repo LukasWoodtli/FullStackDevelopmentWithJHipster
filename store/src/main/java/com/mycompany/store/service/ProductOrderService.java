@@ -2,15 +2,13 @@ package com.mycompany.store.service;
 
 import com.mycompany.store.domain.ProductOrder;
 import com.mycompany.store.repository.ProductOrderRepository;
-import com.mycompany.store.security.AuthoritiesConstants;
-import com.mycompany.store.security.SecurityUtils;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Service Implementation for managing {@link ProductOrder}.
@@ -33,7 +31,7 @@ public class ProductOrderService {
      * @param productOrder the entity to save.
      * @return the persisted entity.
      */
-    public ProductOrder save(ProductOrder productOrder) {
+    public Mono<ProductOrder> save(ProductOrder productOrder) {
         log.debug("Request to save ProductOrder : {}", productOrder);
         return productOrderRepository.save(productOrder);
     }
@@ -44,7 +42,7 @@ public class ProductOrderService {
      * @param productOrder the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<ProductOrder> partialUpdate(ProductOrder productOrder) {
+    public Mono<ProductOrder> partialUpdate(ProductOrder productOrder) {
         log.debug("Request to partially update ProductOrder : {}", productOrder);
 
         return productOrderRepository
@@ -64,7 +62,7 @@ public class ProductOrderService {
                     return existingProductOrder;
                 }
             )
-            .map(productOrderRepository::save);
+            .flatMap(productOrderRepository::save);
     }
 
     /**
@@ -74,13 +72,18 @@ public class ProductOrderService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<ProductOrder> findAll(Pageable pageable) {
+    public Flux<ProductOrder> findAll(Pageable pageable) {
         log.debug("Request to get all ProductOrders");
-        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)) {
-            return productOrderRepository.findAll(pageable);
-        } else {
-            return productOrderRepository.findAllByCustomerUserLogin(SecurityUtils.getCurrentUserLogin().get(), pageable);
-        }
+        return productOrderRepository.findAllBy(pageable);
+    }
+
+    /**
+     * Returns the number of productOrders available.
+     * @return the number of entities in the database.
+     *
+     */
+    public Mono<Long> countAll() {
+        return productOrderRepository.count();
     }
 
     /**
@@ -90,7 +93,7 @@ public class ProductOrderService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<ProductOrder> findOne(Long id) {
+    public Mono<ProductOrder> findOne(Long id) {
         log.debug("Request to get ProductOrder : {}", id);
         return productOrderRepository.findById(id);
     }
@@ -99,9 +102,10 @@ public class ProductOrderService {
      * Delete the productOrder by id.
      *
      * @param id the id of the entity.
+     * @return a Mono to signal the deletion
      */
-    public void delete(Long id) {
+    public Mono<Void> delete(Long id) {
         log.debug("Request to delete ProductOrder : {}", id);
-        productOrderRepository.deleteById(id);
+        return productOrderRepository.deleteById(id);
     }
 }

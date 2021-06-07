@@ -2,13 +2,13 @@ package com.mycompany.store.service;
 
 import com.mycompany.store.domain.Product;
 import com.mycompany.store.repository.ProductRepository;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Service Implementation for managing {@link Product}.
@@ -31,7 +31,7 @@ public class ProductService {
      * @param product the entity to save.
      * @return the persisted entity.
      */
-    public Product save(Product product) {
+    public Mono<Product> save(Product product) {
         log.debug("Request to save Product : {}", product);
         return productRepository.save(product);
     }
@@ -42,7 +42,7 @@ public class ProductService {
      * @param product the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<Product> partialUpdate(Product product) {
+    public Mono<Product> partialUpdate(Product product) {
         log.debug("Request to partially update Product : {}", product);
 
         return productRepository
@@ -71,7 +71,7 @@ public class ProductService {
                     return existingProduct;
                 }
             )
-            .map(productRepository::save);
+            .flatMap(productRepository::save);
     }
 
     /**
@@ -81,9 +81,18 @@ public class ProductService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<Product> findAll(Pageable pageable) {
+    public Flux<Product> findAll(Pageable pageable) {
         log.debug("Request to get all Products");
-        return productRepository.findAll(pageable);
+        return productRepository.findAllBy(pageable);
+    }
+
+    /**
+     * Returns the number of products available.
+     * @return the number of entities in the database.
+     *
+     */
+    public Mono<Long> countAll() {
+        return productRepository.count();
     }
 
     /**
@@ -93,7 +102,7 @@ public class ProductService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<Product> findOne(Long id) {
+    public Mono<Product> findOne(Long id) {
         log.debug("Request to get Product : {}", id);
         return productRepository.findById(id);
     }
@@ -102,9 +111,10 @@ public class ProductService {
      * Delete the product by id.
      *
      * @param id the id of the entity.
+     * @return a Mono to signal the deletion
      */
-    public void delete(Long id) {
+    public Mono<Void> delete(Long id) {
         log.debug("Request to delete Product : {}", id);
-        productRepository.deleteById(id);
+        return productRepository.deleteById(id);
     }
 }

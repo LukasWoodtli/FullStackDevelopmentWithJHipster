@@ -2,6 +2,9 @@
 
 This application was generated using JHipster 7.0.1, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v7.0.1](https://www.jhipster.tech/documentation-archive/v7.0.1).
 
+This is a "gateway" application intended to be part of a microservice architecture, please refer to the [Doing microservices with JHipster][] page of the documentation for more information.
+This application is configured for Service Discovery and Configuration with the JHipster-Registry. On launch, it will refuse to start if it is not able to connect to the JHipster-Registry at [http://localhost:8761](http://localhost:8761). For more information, read our documentation on [Service Discovery and Configuration with the JHipster-Registry][].
+
 ## Development
 
 Before you can build this project, you must install and configure the following dependencies on your machine:
@@ -18,13 +21,6 @@ npm install
 
 We use npm scripts and [Angular CLI][] with [Webpack][] as our build system.
 
-If you are using hazelcast as a cache, you will have to launch a cache server.
-To start your cache server, run:
-
-```
-docker-compose -f src/main/docker/hazelcast-management-center.yml up -d
-```
-
 Run the following commands in two separate terminals to create a blissful development experience where your browser
 auto-refreshes when files change on your hard drive.
 
@@ -38,16 +34,6 @@ specifying a newer version in [package.json](package.json). You can also run `np
 Add the `help` flag on any command to see how you can use it. For example, `npm help update`.
 
 The `npm run` command will list all of the scripts available to run for this project.
-
-### Development Life Reloads
-
-Start the Gradle build in a terminal: `./gradlew`
-
-Then open a new terminal window and start the Angular `npm start`
-
-When changing files on the backend (Java) rebuild the project with `./gradlew compileJava`. This is only necessary if the IDE is not rebuilding automatically.
-
-The front end is rebuilt and loaded automatically.
 
 ### PWA Support
 
@@ -215,7 +201,9 @@ To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`)
 
 [jhipster homepage and latest documentation]: https://www.jhipster.tech
 [jhipster 7.0.1 archive]: https://www.jhipster.tech/documentation-archive/v7.0.1
+[doing microservices with jhipster]: https://www.jhipster.tech/documentation-archive/v7.0.1/microservices-architecture/
 [using jhipster in development]: https://www.jhipster.tech/documentation-archive/v7.0.1/development/
+[service discovery and configuration with the jhipster-registry]: https://www.jhipster.tech/documentation-archive/v7.0.1/microservices-architecture/#jhipster-registry
 [using docker and docker-compose]: https://www.jhipster.tech/documentation-archive/v7.0.1/docker-compose
 [using jhipster in production]: https://www.jhipster.tech/documentation-archive/v7.0.1/production/
 [running tests page]: https://www.jhipster.tech/documentation-archive/v7.0.1/running-tests/

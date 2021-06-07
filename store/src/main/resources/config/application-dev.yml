@@ -20,6 +20,13 @@ logging:
     org.hibernate.SQL: DEBUG
     com.mycompany.store: DEBUG
 
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://admin:${jhipster.registry.password}@localhost:8761/eureka/
+
 spring:
   devtools:
     restart:
@@ -30,23 +37,22 @@ spring:
   jackson:
     serialization:
       indent-output: true
-  datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:h2:file:./build/h2db/db/store;DB_CLOSE_DELAY=-1
-    username: store
-    password:
-    hikari:
-      poolName: Hikari
-      auto-commit: false
+  cloud:
+    config:
+      uri: http://admin:${jhipster.registry.password}@localhost:8761/config
+      # name of the config server's property source (file.yml) that we want to use
+      name: store
+      profile: dev
+      label: main # toggle to switch to a different version of the configuration as stored in git
+      # it can be set to any label, branch or commit of the configuration source Git repository
   h2:
     console:
       # disable spring boot built-in h2-console since we start it manually with correct configuration
       enabled: false
-  jpa:
-    database-platform: tech.jhipster.domain.util.FixedH2Dialect
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
     contexts: dev, faker
+    url: jdbc:h2:file:./build/h2db/db/store;DB_CLOSE_DELAY=-1
   mail:
     host: localhost
     port: 25
@@ -54,8 +60,21 @@ spring:
     password:
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
+  r2dbc:
+    url: r2dbc:h2:file://././build/h2db/db/store;DB_CLOSE_DELAY=-1
+    username: store
+    password:
   thymeleaf:
     cache: false
+  sleuth:
+    sampler:
+      probability: 1 # report 100% of traces
+  zipkin: # Use the "zipkin" Maven profile to have the Spring Cloud Zipkin dependencies
+    base-url: http://localhost:9411
+    enabled: false
+    locator:
+      discovery:
+        enabled: true
 
 server:
   port: 8080
@@ -67,10 +86,13 @@ server:
 # ===================================================================
 
 jhipster:
-  cache: # Cache configuration
-    hazelcast: # Hazelcast distributed cache
-      time-to-live-seconds: 3600
-      backup-count: 1
+  gateway:
+    rate-limiting:
+      enabled: false
+      limit: 100000
+      duration-in-seconds: 3600
+  registry:
+    password: admin
   # CORS is only enabled by default with the "dev" profile
   cors:
     # Allow Ionic for JHipster by default (* no longer allowed in Spring Boot 2.4+)
@@ -84,7 +106,7 @@ jhipster:
     authentication:
       jwt:
         # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
-        base64-secret: ZWNlZTJiMjAzNzVmZTMzYjgyZGNjMTI2ZWNiNDkyYjU0MDU2ZWZiNDY3NjQzMjk4MzM3ZDE3ZDBmMTMwNzc4NGU0ZDI1MjYyNWNhODEwNWUxNjI1Yzg1YjllYzU5OTRkMGQwYTQ4NTRlMjNiMzMyYjYyMTI0Njk1NmJmM2M4NWI=
+        base64-secret: MDQwNGM3Y2QzOGU5N2FkZmQ3ZjRlYmIyMDc1YmRlZDM3ZTU5MmFhNTk3ZjMwOGU3ZTE0MDdjYTM1ZmM4YzhmZDBkNDcxN2FmOTMzNThkODdmZTA4NGQwODY2ZjJhOGY2NDAxOTFmOWNmY2UyYzVjMzdiYTEwODA5MWZhMjFiOTA=
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000

@@ -11,13 +11,17 @@
       "error": "Error"
     },
     "indicator": {
-      "hazelcast": "Hazelcast",
+      "discoveryComposite": "Discovery Composite",
+      "refreshScope": "Microservice Refresh Scope",
+      "clientConfigServer": "Microservice Config Server",
+      "hystrix": "Hystrix",
+      "reactiveDiscoveryClients": "Microservice Discovery Clients",
       "diskSpace": "Disk space",
       "mail": "Email",
       "livenessState": "Liveness state",
       "readinessState": "Readiness state",
       "ping": "Application",
-      "db": "Database"
+      "r2dbc": "Database"
     },
     "table": {
       "service": "Service name",

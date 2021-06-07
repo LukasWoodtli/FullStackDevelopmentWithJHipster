@@ -5,70 +5,66 @@ import com.mycompany.store.domain.enumeration.Gender;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
 import javax.validation.constraints.*;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A Customer.
  */
-@Entity
-@Table(name = "customer")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table("customer")
 public class Customer implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(name = "first_name", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("first_name")
     private String firstName;
 
-    @NotNull
-    @Column(name = "last_name", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("last_name")
     private String lastName;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("gender")
     private Gender gender;
 
-    @NotNull
+    @NotNull(message = "must not be null")
     @Pattern(regexp = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
-    @Column(name = "email", nullable = false)
+    @Column("email")
     private String email;
 
-    @NotNull
-    @Column(name = "phone", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("phone")
     private String phone;
 
-    @NotNull
-    @Column(name = "address_line_1", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("address_line_1")
     private String addressLine1;
 
-    @Column(name = "address_line_2")
+    @Column("address_line_2")
     private String addressLine2;
 
-    @NotNull
-    @Column(name = "city", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("city")
     private String city;
 
-    @NotNull
-    @Column(name = "country", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("country")
     private String country;
 
-    @OneToOne(optional = false)
-    @NotNull
-    @JoinColumn(unique = true)
+    private Long userId;
+
+    @Transient
     private User user;
 
-    @OneToMany(mappedBy = "customer")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "orderItems", "invoices", "customer" }, allowSetters = true)
+    @Transient
+    @JsonIgnoreProperties(value = { "orderItems", "customer" }, allowSetters = true)
     private Set<ProductOrder> orders = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -208,11 +204,21 @@ public class Customer implements Serializable {
 
     public Customer user(User user) {
         this.setUser(user);
+        this.userId = user != null ? user.getId() : null;
         return this;
     }
 
     public void setUser(User user) {
         this.user = user;
+        this.userId = user != null ? user.getId() : null;
+    }
+
+    public Long getUserId() {
+        return this.userId;
+    }
+
+    public void setUserId(Long user) {
+        this.userId = user;
     }
 
     public Set<ProductOrder> getOrders() {

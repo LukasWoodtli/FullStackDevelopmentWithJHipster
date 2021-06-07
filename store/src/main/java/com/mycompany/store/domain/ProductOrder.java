@@ -6,52 +6,45 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
 import javax.validation.constraints.*;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A ProductOrder.
  */
-@Entity
-@Table(name = "product_order")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table("product_order")
 public class ProductOrder implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(name = "placed_date", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("placed_date")
     private Instant placedDate;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("status")
     private OrderStatus status;
 
-    @NotNull
-    @Column(name = "code", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("code")
     private String code;
 
-    @OneToMany(mappedBy = "order")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @Transient
     @JsonIgnoreProperties(value = { "product", "order" }, allowSetters = true)
     private Set<OrderItem> orderItems = new HashSet<>();
 
-    @OneToMany(mappedBy = "order")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "shipments", "order" }, allowSetters = true)
-    private Set<Invoice> invoices = new HashSet<>();
-
-    @ManyToOne(optional = false)
-    @NotNull
     @JsonIgnoreProperties(value = { "user", "orders" }, allowSetters = true)
+    @Transient
     private Customer customer;
+
+    @Column("customer_id")
+    private Long customerId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
@@ -137,48 +130,27 @@ public class ProductOrder implements Serializable {
         this.orderItems = orderItems;
     }
 
-    public Set<Invoice> getInvoices() {
-        return this.invoices;
-    }
-
-    public ProductOrder invoices(Set<Invoice> invoices) {
-        this.setInvoices(invoices);
-        return this;
-    }
-
-    public ProductOrder addInvoice(Invoice invoice) {
-        this.invoices.add(invoice);
-        invoice.setOrder(this);
-        return this;
-    }
-
-    public ProductOrder removeInvoice(Invoice invoice) {
-        this.invoices.remove(invoice);
-        invoice.setOrder(null);
-        return this;
-    }
-
-    public void setInvoices(Set<Invoice> invoices) {
-        if (this.invoices != null) {
-            this.invoices.forEach(i -> i.setOrder(null));
-        }
-        if (invoices != null) {
-            invoices.forEach(i -> i.setOrder(this));
-        }
-        this.invoices = invoices;
-    }
-
     public Customer getCustomer() {
         return this.customer;
     }
 
     public ProductOrder customer(Customer customer) {
         this.setCustomer(customer);
+        this.customerId = customer != null ? customer.getId() : null;
         return this;
     }
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+        this.customerId = customer != null ? customer.getId() : null;
+    }
+
+    public Long getCustomerId() {
+        return this.customerId;
+    }
+
+    public void setCustomerId(Long customer) {
+        this.customerId = customer;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

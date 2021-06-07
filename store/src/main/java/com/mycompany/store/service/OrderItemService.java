@@ -2,13 +2,13 @@ package com.mycompany.store.service;
 
 import com.mycompany.store.domain.OrderItem;
 import com.mycompany.store.repository.OrderItemRepository;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Service Implementation for managing {@link OrderItem}.
@@ -31,7 +31,7 @@ public class OrderItemService {
      * @param orderItem the entity to save.
      * @return the persisted entity.
      */
-    public OrderItem save(OrderItem orderItem) {
+    public Mono<OrderItem> save(OrderItem orderItem) {
         log.debug("Request to save OrderItem : {}", orderItem);
         return orderItemRepository.save(orderItem);
     }
@@ -42,7 +42,7 @@ public class OrderItemService {
      * @param orderItem the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<OrderItem> partialUpdate(OrderItem orderItem) {
+    public Mono<OrderItem> partialUpdate(OrderItem orderItem) {
         log.debug("Request to partially update OrderItem : {}", orderItem);
 
         return orderItemRepository
@@ -62,7 +62,7 @@ public class OrderItemService {
                     return existingOrderItem;
                 }
             )
-            .map(orderItemRepository::save);
+            .flatMap(orderItemRepository::save);
     }
 
     /**
@@ -72,9 +72,18 @@ public class OrderItemService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<OrderItem> findAll(Pageable pageable) {
+    public Flux<OrderItem> findAll(Pageable pageable) {
         log.debug("Request to get all OrderItems");
-        return orderItemRepository.findAll(pageable);
+        return orderItemRepository.findAllBy(pageable);
+    }
+
+    /**
+     * Returns the number of orderItems available.
+     * @return the number of entities in the database.
+     *
+     */
+    public Mono<Long> countAll() {
+        return orderItemRepository.count();
     }
 
     /**
@@ -84,7 +93,7 @@ public class OrderItemService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<OrderItem> findOne(Long id) {
+    public Mono<OrderItem> findOne(Long id) {
         log.debug("Request to get OrderItem : {}", id);
         return orderItemRepository.findById(id);
     }
@@ -93,9 +102,10 @@ public class OrderItemService {
      * Delete the orderItem by id.
      *
      * @param id the id of the entity.
+     * @return a Mono to signal the deletion
      */
-    public void delete(Long id) {
+    public Mono<Void> delete(Long id) {
         log.debug("Request to delete OrderItem : {}", id);
-        orderItemRepository.deleteById(id);
+        return orderItemRepository.deleteById(id);
     }
 }

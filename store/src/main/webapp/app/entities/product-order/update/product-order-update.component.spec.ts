@@ -42,10 +42,10 @@ describe('Component Tests', () => {
     describe('ngOnInit', () => {
       it('Should call Customer query and add missing value', () => {
         const productOrder: IProductOrder = { id: 456 };
-        const customer: ICustomer = { id: 52419 };
+        const customer: ICustomer = { id: 99246 };
         productOrder.customer = customer;
 
-        const customerCollection: ICustomer[] = [{ id: 54745 }];
+        const customerCollection: ICustomer[] = [{ id: 47634 }];
         spyOn(customerService, 'query').and.returnValue(of(new HttpResponse({ body: customerCollection })));
         const additionalCustomers = [customer];
         const expectedCollection: ICustomer[] = [...additionalCustomers, ...customerCollection];
@@ -61,7 +61,7 @@ describe('Component Tests', () => {
 
       it('Should update editForm', () => {
         const productOrder: IProductOrder = { id: 456 };
-        const customer: ICustomer = { id: 39244 };
+        const customer: ICustomer = { id: 41631 };
         productOrder.customer = customer;
 
         activatedRoute.data = of({ productOrder });

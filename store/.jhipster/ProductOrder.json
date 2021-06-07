@@ -26,12 +26,6 @@
       "relationshipName": "orderItem"
     },
     {
-      "relationshipType": "one-to-many",
-      "otherEntityName": "invoice",
-      "otherEntityRelationshipName": "order",
-      "relationshipName": "invoice"
-    },
-    {
       "relationshipType": "many-to-one",
       "otherEntityName": "customer",
       "otherEntityRelationshipName": "order",
@@ -48,6 +42,7 @@
   "fluentMethods": true,
   "readOnly": false,
   "embedded": false,
-  "applications": "*",
-  "changelogDate": "20210512181127"
+  "applications": ["store"],
+  "databaseType": "sql",
+  "changelogDate": "20210607111921"
 }

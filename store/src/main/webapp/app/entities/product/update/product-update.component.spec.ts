@@ -42,10 +42,10 @@ describe('Component Tests', () => {
     describe('ngOnInit', () => {
       it('Should call ProductCategory query and add missing value', () => {
         const product: IProduct = { id: 456 };
-        const productCategory: IProductCategory = { id: 29327 };
+        const productCategory: IProductCategory = { id: 70944 };
         product.productCategory = productCategory;
 
-        const productCategoryCollection: IProductCategory[] = [{ id: 36877 }];
+        const productCategoryCollection: IProductCategory[] = [{ id: 98036 }];
         spyOn(productCategoryService, 'query').and.returnValue(of(new HttpResponse({ body: productCategoryCollection })));
         const additionalProductCategories = [productCategory];
         const expectedCollection: IProductCategory[] = [...additionalProductCategories, ...productCategoryCollection];
@@ -64,7 +64,7 @@ describe('Component Tests', () => {
 
       it('Should update editForm', () => {
         const product: IProduct = { id: 456 };
-        const productCategory: IProductCategory = { id: 88755 };
+        const productCategory: IProductCategory = { id: 13497 };
         product.productCategory = productCategory;
 
         activatedRoute.data = of({ product });

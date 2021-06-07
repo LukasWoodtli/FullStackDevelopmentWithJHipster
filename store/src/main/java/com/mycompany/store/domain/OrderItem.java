@@ -4,49 +4,50 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mycompany.store.domain.enumeration.OrderItemStatus;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import javax.persistence.*;
 import javax.validation.constraints.*;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A OrderItem.
  */
-@Entity
-@Table(name = "order_item")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table("order_item")
 public class OrderItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @NotNull(message = "must not be null")
     @Min(value = 0)
-    @Column(name = "quantity", nullable = false)
+    @Column("quantity")
     private Integer quantity;
 
-    @NotNull
+    @NotNull(message = "must not be null")
     @DecimalMin(value = "0")
-    @Column(name = "total_price", precision = 21, scale = 2, nullable = false)
+    @Column("total_price")
     private BigDecimal totalPrice;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("status")
     private OrderItemStatus status;
 
-    @ManyToOne(optional = false)
-    @NotNull
     @JsonIgnoreProperties(value = { "productCategory" }, allowSetters = true)
+    @Transient
     private Product product;
 
-    @ManyToOne(optional = false)
-    @NotNull
-    @JsonIgnoreProperties(value = { "orderItems", "invoices", "customer" }, allowSetters = true)
+    @Column("product_id")
+    private Long productId;
+
+    @JsonIgnoreProperties(value = { "orderItems", "customer" }, allowSetters = true)
+    @Transient
     private ProductOrder order;
+
+    @Column("order_id")
+    private Long orderId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
@@ -80,12 +81,12 @@ public class OrderItem implements Serializable {
     }
 
     public OrderItem totalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
+        this.totalPrice = totalPrice != null ? totalPrice.stripTrailingZeros() : null;
         return this;
     }
 
     public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
+        this.totalPrice = totalPrice != null ? totalPrice.stripTrailingZeros() : null;
     }
 
     public OrderItemStatus getStatus() {
@@ -107,11 +108,21 @@ public class OrderItem implements Serializable {
 
     public OrderItem product(Product product) {
         this.setProduct(product);
+        this.productId = product != null ? product.getId() : null;
         return this;
     }
 
     public void setProduct(Product product) {
         this.product = product;
+        this.productId = product != null ? product.getId() : null;
+    }
+
+    public Long getProductId() {
+        return this.productId;
+    }
+
+    public void setProductId(Long product) {
+        this.productId = product;
     }
 
     public ProductOrder getOrder() {
@@ -120,11 +131,21 @@ public class OrderItem implements Serializable {
 
     public OrderItem order(ProductOrder productOrder) {
         this.setOrder(productOrder);
+        this.orderId = productOrder != null ? productOrder.getId() : null;
         return this;
     }
 
     public void setOrder(ProductOrder productOrder) {
         this.order = productOrder;
+        this.orderId = productOrder != null ? productOrder.getId() : null;
+    }
+
+    public Long getOrderId() {
+        return this.orderId;
+    }
+
+    public void setOrderId(Long productOrder) {
+        this.orderId = productOrder;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

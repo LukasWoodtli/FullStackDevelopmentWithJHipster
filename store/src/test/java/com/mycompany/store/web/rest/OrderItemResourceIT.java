@@ -3,8 +3,7 @@ package com.mycompany.store.web.rest;
 import static com.mycompany.store.web.rest.TestUtil.sameNumber;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.is;
 
 import com.mycompany.store.IntegrationTest;
 import com.mycompany.store.domain.OrderItem;
@@ -12,25 +11,29 @@ import com.mycompany.store.domain.Product;
 import com.mycompany.store.domain.ProductOrder;
 import com.mycompany.store.domain.enumeration.OrderItemStatus;
 import com.mycompany.store.repository.OrderItemRepository;
+import com.mycompany.store.service.EntityManager;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * Integration tests for the {@link OrderItemResource} REST controller.
  */
 @IntegrationTest
-@AutoConfigureMockMvc
+@AutoConfigureWebTestClient
 @WithMockUser
 class OrderItemResourceIT {
 
@@ -56,7 +59,7 @@ class OrderItemResourceIT {
     private EntityManager em;
 
     @Autowired
-    private MockMvc restOrderItemMockMvc;
+    private WebTestClient webTestClient;
 
     private OrderItem orderItem;
 
@@ -70,23 +73,11 @@ class OrderItemResourceIT {
         OrderItem orderItem = new OrderItem().quantity(DEFAULT_QUANTITY).totalPrice(DEFAULT_TOTAL_PRICE).status(DEFAULT_STATUS);
         // Add required entity
         Product product;
-        if (TestUtil.findAll(em, Product.class).isEmpty()) {
-            product = ProductResourceIT.createEntity(em);
-            em.persist(product);
-            em.flush();
-        } else {
-            product = TestUtil.findAll(em, Product.class).get(0);
-        }
+        product = em.insert(ProductResourceIT.createEntity(em)).block();
         orderItem.setProduct(product);
         // Add required entity
         ProductOrder productOrder;
-        if (TestUtil.findAll(em, ProductOrder.class).isEmpty()) {
-            productOrder = ProductOrderResourceIT.createEntity(em);
-            em.persist(productOrder);
-            em.flush();
-        } else {
-            productOrder = TestUtil.findAll(em, ProductOrder.class).get(0);
-        }
+        productOrder = em.insert(ProductOrderResourceIT.createEntity(em)).block();
         orderItem.setOrder(productOrder);
         return orderItem;
     }
@@ -101,43 +92,51 @@ class OrderItemResourceIT {
         OrderItem orderItem = new OrderItem().quantity(UPDATED_QUANTITY).totalPrice(UPDATED_TOTAL_PRICE).status(UPDATED_STATUS);
         // Add required entity
         Product product;
-        if (TestUtil.findAll(em, Product.class).isEmpty()) {
-            product = ProductResourceIT.createUpdatedEntity(em);
-            em.persist(product);
-            em.flush();
-        } else {
-            product = TestUtil.findAll(em, Product.class).get(0);
-        }
+        product = em.insert(ProductResourceIT.createUpdatedEntity(em)).block();
         orderItem.setProduct(product);
         // Add required entity
         ProductOrder productOrder;
-        if (TestUtil.findAll(em, ProductOrder.class).isEmpty()) {
-            productOrder = ProductOrderResourceIT.createUpdatedEntity(em);
-            em.persist(productOrder);
-            em.flush();
-        } else {
-            productOrder = TestUtil.findAll(em, ProductOrder.class).get(0);
-        }
+        productOrder = em.insert(ProductOrderResourceIT.createUpdatedEntity(em)).block();
         orderItem.setOrder(productOrder);
         return orderItem;
     }
 
+    public static void deleteEntities(EntityManager em) {
+        try {
+            em.deleteAll(OrderItem.class).block();
+        } catch (Exception e) {
+            // It can fail, if other entities are still referring this - it will be removed later.
+        }
+        ProductResourceIT.deleteEntities(em);
+        ProductOrderResourceIT.deleteEntities(em);
+    }
+
+    @AfterEach
+    public void cleanup() {
+        deleteEntities(em);
+    }
+
     @BeforeEach
     public void initTest() {
+        deleteEntities(em);
         orderItem = createEntity(em);
     }
 
     @Test
-    @Transactional
     void createOrderItem() throws Exception {
-        int databaseSizeBeforeCreate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeCreate = orderItemRepository.findAll().collectList().block().size();
         // Create the OrderItem
-        restOrderItemMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isCreated());
+        webTestClient
+            .post()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isCreated();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeCreate + 1);
         OrderItem testOrderItem = orderItemList.get(orderItemList.size() - 1);
         assertThat(testOrderItem.getQuantity()).isEqualTo(DEFAULT_QUANTITY);
@@ -146,139 +145,176 @@ class OrderItemResourceIT {
     }
 
     @Test
-    @Transactional
     void createOrderItemWithExistingId() throws Exception {
         // Create the OrderItem with an existing ID
         orderItem.setId(1L);
 
-        int databaseSizeBeforeCreate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeCreate = orderItemRepository.findAll().collectList().block().size();
 
         // An entity with an existing ID cannot be created, so this API call must fail
-        restOrderItemMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .post()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeCreate);
     }
 
     @Test
-    @Transactional
     void checkQuantityIsRequired() throws Exception {
-        int databaseSizeBeforeTest = orderItemRepository.findAll().size();
+        int databaseSizeBeforeTest = orderItemRepository.findAll().collectList().block().size();
         // set the field null
         orderItem.setQuantity(null);
 
         // Create the OrderItem, which fails.
 
-        restOrderItemMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .post()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
-    @Transactional
     void checkTotalPriceIsRequired() throws Exception {
-        int databaseSizeBeforeTest = orderItemRepository.findAll().size();
+        int databaseSizeBeforeTest = orderItemRepository.findAll().collectList().block().size();
         // set the field null
         orderItem.setTotalPrice(null);
 
         // Create the OrderItem, which fails.
 
-        restOrderItemMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .post()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
-    @Transactional
     void checkStatusIsRequired() throws Exception {
-        int databaseSizeBeforeTest = orderItemRepository.findAll().size();
+        int databaseSizeBeforeTest = orderItemRepository.findAll().collectList().block().size();
         // set the field null
         orderItem.setStatus(null);
 
         // Create the OrderItem, which fails.
 
-        restOrderItemMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .post()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
-    @Transactional
-    void getAllOrderItems() throws Exception {
+    void getAllOrderItems() {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
         // Get all the orderItemList
-        restOrderItemMockMvc
-            .perform(get(ENTITY_API_URL + "?sort=id,desc"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(orderItem.getId().intValue())))
-            .andExpect(jsonPath("$.[*].quantity").value(hasItem(DEFAULT_QUANTITY)))
-            .andExpect(jsonPath("$.[*].totalPrice").value(hasItem(sameNumber(DEFAULT_TOTAL_PRICE))))
-            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())));
+        webTestClient
+            .get()
+            .uri(ENTITY_API_URL + "?sort=id,desc")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectHeader()
+            .contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.[*].id")
+            .value(hasItem(orderItem.getId().intValue()))
+            .jsonPath("$.[*].quantity")
+            .value(hasItem(DEFAULT_QUANTITY))
+            .jsonPath("$.[*].totalPrice")
+            .value(hasItem(sameNumber(DEFAULT_TOTAL_PRICE)))
+            .jsonPath("$.[*].status")
+            .value(hasItem(DEFAULT_STATUS.toString()));
     }
 
     @Test
-    @Transactional
-    void getOrderItem() throws Exception {
+    void getOrderItem() {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
         // Get the orderItem
-        restOrderItemMockMvc
-            .perform(get(ENTITY_API_URL_ID, orderItem.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(orderItem.getId().intValue()))
-            .andExpect(jsonPath("$.quantity").value(DEFAULT_QUANTITY))
-            .andExpect(jsonPath("$.totalPrice").value(sameNumber(DEFAULT_TOTAL_PRICE)))
-            .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()));
+        webTestClient
+            .get()
+            .uri(ENTITY_API_URL_ID, orderItem.getId())
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectHeader()
+            .contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.id")
+            .value(is(orderItem.getId().intValue()))
+            .jsonPath("$.quantity")
+            .value(is(DEFAULT_QUANTITY))
+            .jsonPath("$.totalPrice")
+            .value(is(sameNumber(DEFAULT_TOTAL_PRICE)))
+            .jsonPath("$.status")
+            .value(is(DEFAULT_STATUS.toString()));
     }
 
     @Test
-    @Transactional
-    void getNonExistingOrderItem() throws Exception {
+    void getNonExistingOrderItem() {
         // Get the orderItem
-        restOrderItemMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
+        webTestClient
+            .get()
+            .uri(ENTITY_API_URL_ID, Long.MAX_VALUE)
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isNotFound();
     }
 
     @Test
-    @Transactional
     void putNewOrderItem() throws Exception {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
 
         // Update the orderItem
-        OrderItem updatedOrderItem = orderItemRepository.findById(orderItem.getId()).get();
-        // Disconnect from session so that the updates on updatedOrderItem are not directly saved in db
-        em.detach(updatedOrderItem);
+        OrderItem updatedOrderItem = orderItemRepository.findById(orderItem.getId()).block();
         updatedOrderItem.quantity(UPDATED_QUANTITY).totalPrice(UPDATED_TOTAL_PRICE).status(UPDATED_STATUS);
 
-        restOrderItemMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, updatedOrderItem.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedOrderItem))
-            )
-            .andExpect(status().isOk());
+        webTestClient
+            .put()
+            .uri(ENTITY_API_URL_ID, updatedOrderItem.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(updatedOrderItem))
+            .exchange()
+            .expectStatus()
+            .isOk();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
         OrderItem testOrderItem = orderItemList.get(orderItemList.size() - 1);
         assertThat(testOrderItem.getQuantity()).isEqualTo(UPDATED_QUANTITY);
@@ -287,83 +323,87 @@ class OrderItemResourceIT {
     }
 
     @Test
-    @Transactional
     void putNonExistingOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, orderItem.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(orderItem))
-            )
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .put()
+            .uri(ENTITY_API_URL_ID, orderItem.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
     void putWithIdMismatchOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, count.incrementAndGet())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(orderItem))
-            )
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .put()
+            .uri(ENTITY_API_URL_ID, count.incrementAndGet())
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
     void putWithMissingIdPathParamOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(orderItem)))
-            .andExpect(status().isMethodNotAllowed());
+        webTestClient
+            .put()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(405);
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
     void partialUpdateOrderItemWithPatch() throws Exception {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
 
         // Update the orderItem using partial update
         OrderItem partialUpdatedOrderItem = new OrderItem();
         partialUpdatedOrderItem.setId(orderItem.getId());
 
-        restOrderItemMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedOrderItem.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedOrderItem))
-            )
-            .andExpect(status().isOk());
+        webTestClient
+            .patch()
+            .uri(ENTITY_API_URL_ID, partialUpdatedOrderItem.getId())
+            .contentType(MediaType.valueOf("application/merge-patch+json"))
+            .bodyValue(TestUtil.convertObjectToJsonBytes(partialUpdatedOrderItem))
+            .exchange()
+            .expectStatus()
+            .isOk();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
         OrderItem testOrderItem = orderItemList.get(orderItemList.size() - 1);
         assertThat(testOrderItem.getQuantity()).isEqualTo(DEFAULT_QUANTITY);
@@ -372,12 +412,11 @@ class OrderItemResourceIT {
     }
 
     @Test
-    @Transactional
     void fullUpdateOrderItemWithPatch() throws Exception {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
 
         // Update the orderItem using partial update
         OrderItem partialUpdatedOrderItem = new OrderItem();
@@ -385,16 +424,17 @@ class OrderItemResourceIT {
 
         partialUpdatedOrderItem.quantity(UPDATED_QUANTITY).totalPrice(UPDATED_TOTAL_PRICE).status(UPDATED_STATUS);
 
-        restOrderItemMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedOrderItem.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedOrderItem))
-            )
-            .andExpect(status().isOk());
+        webTestClient
+            .patch()
+            .uri(ENTITY_API_URL_ID, partialUpdatedOrderItem.getId())
+            .contentType(MediaType.valueOf("application/merge-patch+json"))
+            .bodyValue(TestUtil.convertObjectToJsonBytes(partialUpdatedOrderItem))
+            .exchange()
+            .expectStatus()
+            .isOk();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
         OrderItem testOrderItem = orderItemList.get(orderItemList.size() - 1);
         assertThat(testOrderItem.getQuantity()).isEqualTo(UPDATED_QUANTITY);
@@ -403,79 +443,83 @@ class OrderItemResourceIT {
     }
 
     @Test
-    @Transactional
     void patchNonExistingOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, orderItem.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(orderItem))
-            )
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .patch()
+            .uri(ENTITY_API_URL_ID, orderItem.getId())
+            .contentType(MediaType.valueOf("application/merge-patch+json"))
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
     void patchWithIdMismatchOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, count.incrementAndGet())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(orderItem))
-            )
-            .andExpect(status().isBadRequest());
+        webTestClient
+            .patch()
+            .uri(ENTITY_API_URL_ID, count.incrementAndGet())
+            .contentType(MediaType.valueOf("application/merge-patch+json"))
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isBadRequest();
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
     void patchWithMissingIdPathParamOrderItem() throws Exception {
-        int databaseSizeBeforeUpdate = orderItemRepository.findAll().size();
+        int databaseSizeBeforeUpdate = orderItemRepository.findAll().collectList().block().size();
         orderItem.setId(count.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restOrderItemMockMvc
-            .perform(
-                patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(orderItem))
-            )
-            .andExpect(status().isMethodNotAllowed());
+        webTestClient
+            .patch()
+            .uri(ENTITY_API_URL)
+            .contentType(MediaType.valueOf("application/merge-patch+json"))
+            .bodyValue(TestUtil.convertObjectToJsonBytes(orderItem))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(405);
 
         // Validate the OrderItem in the database
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeUpdate);
     }
 
     @Test
-    @Transactional
-    @WithMockUser(username = "admin", authorities = { "ROLE_ADMIN" }, password = "admin")
-    void deleteOrderItem() throws Exception {
+    void deleteOrderItem() {
         // Initialize the database
-        orderItemRepository.saveAndFlush(orderItem);
+        orderItemRepository.save(orderItem).block();
 
-        int databaseSizeBeforeDelete = orderItemRepository.findAll().size();
+        int databaseSizeBeforeDelete = orderItemRepository.findAll().collectList().block().size();
 
         // Delete the orderItem
-        restOrderItemMockMvc
-            .perform(delete(ENTITY_API_URL_ID, orderItem.getId()).accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+        webTestClient
+            .delete()
+            .uri(ENTITY_API_URL_ID, orderItem.getId())
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isNoContent();
 
         // Validate the database contains one less item
-        List<OrderItem> orderItemList = orderItemRepository.findAll();
+        List<OrderItem> orderItemList = orderItemRepository.findAll().collectList().block();
         assertThat(orderItemList).hasSize(databaseSizeBeforeDelete - 1);
     }
 }

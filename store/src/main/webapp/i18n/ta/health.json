@@ -11,13 +11,16 @@
       "error": "பிழை"
     },
     "indicator": {
-      "hazelcast": "Hazelcast",
+      "discoveryComposite": "Discovery Composite",
+      "refreshScope": "Microservice Refresh Scope",
+      "clientConfigServer": "Microservice Config Server",
+      "hystrix": "Hystrix",
       "diskSpace": "வட்டு காலியிடம்",
       "mail": "மின்னஞ்சல்",
       "livenessState": "Liveness state",
       "readinessState": "Readiness state",
       "ping": "Application",
-      "db": "Database"
+      "r2dbc": "Database"
     },
     "table": {
       "service": "சேவை பெயர்",

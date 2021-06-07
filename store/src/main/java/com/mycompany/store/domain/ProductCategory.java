@@ -4,34 +4,31 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
 import javax.validation.constraints.*;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A ProductCategory.
  */
-@Entity
-@Table(name = "product_category")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table("product_category")
 public class ProductCategory implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @Column(name = "name", nullable = false)
+    @NotNull(message = "must not be null")
+    @Column("name")
     private String name;
 
-    @Column(name = "description")
+    @Column("description")
     private String description;
 
-    @OneToMany(mappedBy = "productCategory")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @Transient
     @JsonIgnoreProperties(value = { "productCategory" }, allowSetters = true)
     private Set<Product> products = new HashSet<>();
 

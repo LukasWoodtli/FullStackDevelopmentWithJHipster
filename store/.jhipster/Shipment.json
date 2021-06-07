@@ -33,6 +33,9 @@
   "fluentMethods": true,
   "readOnly": false,
   "embedded": false,
-  "applications": "*",
-  "changelogDate": "20210512181130"
+  "applications": ["store", "invoice"],
+  "microserviceName": "invoice",
+  "clientRootFolder": "invoice",
+  "databaseType": "sql",
+  "changelogDate": "20210607112321"
 }
