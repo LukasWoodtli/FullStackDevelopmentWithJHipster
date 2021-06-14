@@ -40,7 +40,7 @@ public class JWTFilter implements WebFilter {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        String jwt = request.getParameter(AUTHORIZATION_TOKEN);
+        String jwt = request.getQueryParams().getFirst(AUTHORIZATION_TOKEN);
         if (StringUtils.hasText(jwt)) {
             return jwt;
         }
