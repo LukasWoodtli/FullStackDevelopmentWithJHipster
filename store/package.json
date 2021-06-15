@@ -97,10 +97,8 @@
     "ngx-infinite-scroll": "10.0.1",
     "ngx-webstorage": "7.0.1",
     "rxjs": "6.6.7",
-    "sockjs-client": "1.5.0",
     "swagger-ui-dist": "3.46.0",
     "tslib": "2.1.0",
-    "webstomp-client": "1.2.6",
     "zone.js": "0.11.3"
   },
   "devDependencies": {
@@ -116,7 +114,6 @@
     "@types/mocha": "8.2.0",
     "@types/node": "14.14.37",
     "@types/selenium-webdriver": "4.0.11",
-    "@types/sockjs-client": "1.5.0",
     "@typescript-eslint/eslint-plugin": "4.20.0",
     "@typescript-eslint/parser": "4.20.0",
     "browser-sync": "2.26.14",

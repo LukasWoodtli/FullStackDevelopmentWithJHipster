@@ -12,7 +12,6 @@ application {
     buildTool gradle
     clientFramework angularX
     languages [en, zh-cn, ta]
-    websocket spring-websocket
     testFrameworks [protractor]
   }
   entities *

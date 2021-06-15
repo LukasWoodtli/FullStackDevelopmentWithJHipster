@@ -37,10 +37,6 @@ import { RouterModule } from '@angular/router';
         path: 'gateway',
         loadChildren: () => import('./gateway/gateway.module').then(m => m.GatewayModule),
       },
-      {
-        path: 'tracker',
-        loadChildren: () => import('./tracker/tracker.module').then(m => m.TrackerModule),
-      },
       /* jhipster-needle-add-admin-route - JHipster will add admin routes here */
     ]),
   ],

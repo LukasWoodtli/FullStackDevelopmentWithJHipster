@@ -48,5 +48,5 @@
   "embedded": false,
   "applications": ["store"],
   "databaseType": "sql",
-  "changelogDate": "20210607112221"
+  "changelogDate": "20210615070753"
 }

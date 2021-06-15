@@ -1,7 +1,6 @@
 jest.mock('@angular/router');
 jest.mock('@ngx-translate/core');
 jest.mock('app/core/auth/state-storage.service');
-jest.mock('app/core/tracker/tracker.service');
 
 import { Router } from '@angular/router';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
@@ -12,7 +11,6 @@ import { NgxWebstorageModule } from 'ngx-webstorage';
 import { Account } from 'app/core/auth/account.model';
 import { Authority } from 'app/config/authority.constants';
 import { StateStorageService } from 'app/core/auth/state-storage.service';
-import { TrackerService } from 'app/core/tracker/tracker.service';
 
 import { AccountService } from './account.service';
 
@@ -35,19 +33,17 @@ describe('Service Tests', () => {
     let httpMock: HttpTestingController;
     let mockStorageService: StateStorageService;
     let mockRouter: Router;
-    let mockTrackerService: TrackerService;
 
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [HttpClientTestingModule, NgxWebstorageModule.forRoot()],
-        providers: [TranslateService, TrackerService, StateStorageService, Router],
+        providers: [TranslateService, StateStorageService, Router],
       });
 
       service = TestBed.inject(AccountService);
       httpMock = TestBed.inject(HttpTestingController);
       mockStorageService = TestBed.inject(StateStorageService);
       mockRouter = TestBed.inject(Router);
-      mockTrackerService = TestBed.inject(TrackerService);
     });
 
     afterEach(() => {
@@ -66,8 +62,6 @@ describe('Service Tests', () => {
         // THEN
         expect(userIdentity).toBeNull();
         expect(service.isAuthenticated()).toBe(false);
-        expect(mockTrackerService.disconnect).toHaveBeenCalled();
-        expect(mockTrackerService.connect).not.toHaveBeenCalled();
       });
 
       it('authenticationState should emit the same account as was in input parameter', () => {
@@ -82,8 +76,6 @@ describe('Service Tests', () => {
         // THEN
         expect(userIdentity).toEqual(expectedResult);
         expect(service.isAuthenticated()).toBe(true);
-        expect(mockTrackerService.connect).toHaveBeenCalled();
-        expect(mockTrackerService.disconnect).not.toHaveBeenCalled();
       });
     });
 

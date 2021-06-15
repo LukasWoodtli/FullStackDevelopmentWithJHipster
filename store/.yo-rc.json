@@ -21,7 +21,7 @@
     "searchEngine": false,
     "skipClient": false,
     "testFrameworks": ["protractor"],
-    "websocket": "spring-websocket",
+    "websocket": false,
     "applicationType": "gateway",
     "packageName": "com.mycompany.store",
     "packageFolder": "com/mycompany/store",
@@ -39,9 +39,9 @@
     "otherModules": [],
     "pages": [],
     "nativeLanguage": "en",
-    "creationTimestamp": 1623064581694,
-    "jwtSecretKey": "MDQwNGM3Y2QzOGU5N2FkZmQ3ZjRlYmIyMDc1YmRlZDM3ZTU5MmFhNTk3ZjMwOGU3ZTE0MDdjYTM1ZmM4YzhmZDBkNDcxN2FmOTMzNThkODdmZTA4NGQwODY2ZjJhOGY2NDAxOTFmOWNmY2UyYzVjMzdiYTEwODA5MWZhMjFiOTA=",
+    "creationTimestamp": 1623740513939,
+    "jwtSecretKey": "YjJjYWQ2YjE4M2ZlNDY5ODE4NzBhMmY4MWQ1MzMyMmRlYmNhNjUxY2VhMmJlYzBiN2VmN2JhMDMzY2E0ZDYwMjJiYTVlNDJlNWI1YzYyYmQ3MWFmMDlhNDE5MjlkM2E5MjkyNDc2Zjg4OTRiNGNhNGE1NzkyZTIwMGJiMDViMjc=",
     "entities": ["ProductCategory", "Notification", "ProductOrder", "Invoice", "Customer", "Product", "Shipment", "OrderItem"],
-    "lastLiquibaseTimestamp": 1623065061000
+    "lastLiquibaseTimestamp": 1623740993000
   }
 }

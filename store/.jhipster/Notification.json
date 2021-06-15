@@ -45,5 +45,5 @@
   "microserviceName": "notification",
   "clientRootFolder": "notification",
   "databaseType": "sql",
-  "changelogDate": "20210607111821"
+  "changelogDate": "20210615070353"
 }
