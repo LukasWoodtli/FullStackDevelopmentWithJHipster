@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: store-app
+  namespace: jhipster
+  labels:
+    team: jhipster
+spec:
+  selector:
+    matchLabels:
+      app: store
+  endpoints:
+    - port: web
+      path: /prometheusMetrics

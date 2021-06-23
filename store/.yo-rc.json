@@ -43,6 +43,8 @@
     "jwtSecretKey": "YjJjYWQ2YjE4M2ZlNDY5ODE4NzBhMmY4MWQ1MzMyMmRlYmNhNjUxY2VhMmJlYzBiN2VmN2JhMDMzY2E0ZDYwMjJiYTVlNDJlNWI1YzYyYmQ3MWFmMDlhNDE5MjlkM2E5MjkyNDc2Zjg4OTRiNGNhNGE1NzkyZTIwMGJiMDViMjc=",
     "entities": ["ProductCategory", "Notification", "ProductOrder", "Invoice", "Customer", "Product", "Shipment", "OrderItem"],
     "lastLiquibaseTimestamp": 1623740993000,
-    "appFolder": "store"
+    "appFolder": "store",
+    "targetImageName": "lukaswoodtli/store",
+    "dbPeerCount": 1
   }
 }
