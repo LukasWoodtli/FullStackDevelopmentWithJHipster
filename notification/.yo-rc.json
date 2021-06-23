@@ -42,6 +42,7 @@
     "creationTimestamp": 1623740513939,
     "jwtSecretKey": "NTQ1MzA1ZWY2ZWRiYWQ2ODg4NTU5NmQ0ODFjZjkyYTljYWRhMmJjOTI1M2RmOGUxYzY5Y2U1ZGQ4MzIxZjQ5YmVmYTA3YmY4N2I5NzJkNzVmNTQyNjBmZTIyODE2ZTViYjRjYzI4ZTA2MDEzMjEyNDA1N2Y0YThiMTkxODE0NDc=",
     "entities": ["Notification"],
-    "lastLiquibaseTimestamp": 1623740573000
+    "lastLiquibaseTimestamp": 1623740573000,
+    "appFolder": "notification"
   }
 }

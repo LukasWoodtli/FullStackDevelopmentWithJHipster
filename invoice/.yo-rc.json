@@ -42,6 +42,7 @@
     "creationTimestamp": 1623740513939,
     "jwtSecretKey": "MTY4ZTdhYjAyODhmYzVjY2ZjYWMxOGZhODM1NGRhNmZjNjE1MzU5YjMxOTU4MzBjMTU3MmYzNTE5MTMzNzU5OGY0YTM4OTMyZTY0NGMxOWIwMTIzOTgwNWI4OTMzZWQxODg3YTAyMTgyYWNiMGRlOTg1YTE5MDc2MzI3OGI0M2Y=",
     "entities": ["Invoice", "Shipment"],
-    "lastLiquibaseTimestamp": 1623740633000
+    "lastLiquibaseTimestamp": 1623740633000,
+    "appFolder": "invoice"
   }
 }
